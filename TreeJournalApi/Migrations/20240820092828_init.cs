@@ -32,7 +32,7 @@ namespace TreeJournalApi.Migrations
                 name: "Trees",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -45,11 +45,11 @@ namespace TreeJournalApi.Migrations
                 name: "TreeNodes",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ParentId = table.Column<long>(type: "bigint", nullable: false),
-                    TreeId = table.Column<long>(type: "bigint", nullable: true)
+                    TreeId = table.Column<int>(type: "int", nullable: false),
+                    ParentId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,7 +64,8 @@ namespace TreeJournalApi.Migrations
                         name: "FK_TreeNodes_Trees_TreeId",
                         column: x => x.TreeId,
                         principalTable: "Trees",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

@@ -1,71 +1,102 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TreeJournalApi.Models;
+using TreeJournalApi.Services.Interfaces;
 
-[ApiController]
-[Route("api/user/tree")]
-public class TreeController : ControllerBase
+namespace TreeJournalApi.Controllers
 {
-    private readonly ITreeService _treeService;
-
-    public TreeController(ITreeService treeService)
+    [ApiController]
+    [Route("api.user.tree.node")]
+    public class NodeController : ControllerBase
     {
-        _treeService = treeService;
-    }
+        private readonly ITreeNodeService _nodeService;
 
-    [HttpPost("node/create")]
-    public async Task<IActionResult> CreateNode([FromBody] TreeNode node)
-    {
-        if (node == null || string.IsNullOrEmpty(node.Name))
+        public NodeController(ITreeNodeService nodeService)
         {
-            return BadRequest("Invalid node data.");
+            _nodeService = nodeService;
         }
 
-        await _treeService.AddNodeAsync(node);
-        return CreatedAtAction(nameof(GetNode), new { id = node.Id }, node);
-    }
-
-    [HttpGet("node/{id}")]
-    public async Task<IActionResult> GetNode(long id)
-    {
-        var node = await _treeService.GetNodeByIdAsync(id);
-        if (node == null)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateNode([FromBody] TreeNode node)
         {
-            return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var createdNode = await _nodeService.CreateNodeAsync(node);
+            return CreatedAtAction(nameof(GetNode), new { id = createdNode.Id }, createdNode);
         }
 
-        return Ok(node);
-    }
-
-    [HttpDelete("node/delete/{id}")]
-    public async Task<IActionResult> DeleteNode(long id)
-    {
-        var node = await _treeService.GetNodeByIdAsync(id);
-        if (node == null)
+        [HttpPost("delete")]
+        public async Task<IActionResult> DeleteNode([FromBody] int id)
         {
-            return NotFound();
+            try
+            {
+                await _nodeService.DeleteNodeAsync(id);
+                return NoContent();
+            }
+            catch (SecureException ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    type = "Secure",
+                    id = DateTime.Now.Ticks,
+                    data = new { message = ex.Message }
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    type = "Exception",
+                    id = DateTime.Now.Ticks,
+                    data = new { message = $"Internal server error ID = {DateTime.Now.Ticks}" }
+                });
+            }
         }
 
-        await _treeService.DeleteNodeAsync(id);
-        return NoContent();
-    }
-
-    [HttpPut("node/rename/{id}")]
-    public async Task<IActionResult> RenameNode(long id, [FromBody] string newName)
-    {
-        var node = await _treeService.GetNodeByIdAsync(id);
-        if (node == null)
+        [HttpPost("rename")]
+        public async Task<IActionResult> RenameNode([FromBody] TreeNode node)
         {
-            return NotFound();
+            try
+            {
+                var updatedNode = await _nodeService.UpdateNodeAsync(node);
+                return Ok(updatedNode);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    type = "Exception",
+                    id = DateTime.Now.Ticks,
+                    data = new { message = $"Internal server error ID = {DateTime.Now.Ticks}" }
+                });
+            }
         }
 
-        node.Name = newName;
-        await _treeService.UpdateNodeAsync(node);
-        return NoContent();
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetTree()
-    {
-        var nodes = await _treeService.GetAllNodesAsync();
-        return Ok(nodes);
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetNode(int id)
+        {
+            try
+            {
+                var node = await _nodeService.GetNodeByIdAsync(id);
+                return Ok(node);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    type = "Exception",
+                    id = DateTime.Now.Ticks,
+                    data = new { message = $"Internal server error ID = {DateTime.Now.Ticks}" }
+                });
+            }
+        }
     }
 }

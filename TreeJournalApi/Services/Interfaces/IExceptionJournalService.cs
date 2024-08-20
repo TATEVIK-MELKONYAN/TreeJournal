@@ -1,8 +1,10 @@
 ﻿using TreeJournalApi.Models;
 
-public interface IExceptionJournalService
+namespace TreeJournalApi.Services.Interfaces
 {
-    Task<ExceptionJournal> GetByIdAsync(long id);
-    Task<IEnumerable<ExceptionJournal>> GetRangeAsync(ExceptionJournalFilter filter);
-    Task LogExceptionAsync(ExceptionJournal journalEntry);
+    public interface IExceptionJournalService
+    {
+        Task<MRange<MJournalInfo>> GetRangeAsync(VJournalFilter filter);
+        Task<MJournal> GetSingleAsync(long id);
+    }
 }

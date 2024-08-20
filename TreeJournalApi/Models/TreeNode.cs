@@ -1,18 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class TreeNode
+namespace TreeJournalApi.Models
 {
-    [Key]
-    public long Id { get; set; }
+    public class TreeNode
+    {
+        [Key]
+        public int Id { get; set; }
 
-    [Required]
-    public string Name { get; set; }
+        [Required]
+        public string Name { get; set; }
 
-    public long? ParentId { get; set; }
+        [Required]
+        public int TreeId { get; set; }
 
-    [ForeignKey("ParentId")]
-    public virtual TreeNode Parent { get; set; }
+        [ForeignKey("TreeId")]
+        public Tree Tree { get; set; }
 
-    public virtual ICollection<TreeNode> Children { get; set; } = new List<TreeNode>();
+        public int? ParentId { get; set; }
+
+        [ForeignKey("ParentId")]
+        public TreeNode Parent { get; set; }
+
+        public ICollection<TreeNode> Children { get; set; } = new List<TreeNode>();
+    }
 }

@@ -5,33 +5,38 @@ using TreeJournalApi.Repositories.Interfaces;
 
 namespace TreeJournalApi.Repositories
 {
-    public class ExceptionJournalRepository : IRepository<ExceptionJournal>
+    public class TreeNodeRepository : IRepository<TreeNode>
     {
         private readonly AppDbContext _context;
 
-        public ExceptionJournalRepository(AppDbContext context)
+        public TreeNodeRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<ExceptionJournal> GetByIdAsync(int id)
+        public async Task<TreeNode> GetByIdAsync(int id)
         {
-            var journal = await _context.ExceptionJournals.FindAsync(id);
-            return journal ?? throw new InvalidOperationException($"No ExceptionJournal found with id {id}");
+            var node = await _context.TreeNodes
+                             .Include(n => n.Children)
+                             .SingleOrDefaultAsync(n => n.Id == id);
+
+            return node ?? throw new InvalidOperationException($"No TreeNode found with id {id}");
         }
 
-        public async Task<IEnumerable<ExceptionJournal>> GetAllAsync()
+        public async Task<IEnumerable<TreeNode>> GetAllAsync()
         {
-            return await _context.ExceptionJournals.ToListAsync();
+            return await _context.TreeNodes
+                .Include(n => n.Children)
+                .ToListAsync();
         }
 
-        public async Task AddAsync(ExceptionJournal entity)
+        public async Task AddAsync(TreeNode entity)
         {
-            _context.ExceptionJournals.Add(entity);
+            _context.TreeNodes.Add(entity);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(ExceptionJournal entity)
+        public async Task UpdateAsync(TreeNode entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -42,7 +47,7 @@ namespace TreeJournalApi.Repositories
             var entity = await GetByIdAsync(id);
             if (entity != null)
             {
-                _context.ExceptionJournals.Remove(entity);
+                _context.TreeNodes.Remove(entity);
                 await _context.SaveChangesAsync();
             }
         }

@@ -1,43 +1,68 @@
 ﻿using TreeJournalApi.Models;
+using TreeJournalApi.Repositories.Interfaces;
+using TreeJournalApi.Services.Interfaces;
 
-public class ExceptionJournalService : IExceptionJournalService
+namespace TreeJournalApi.Services
 {
-    private readonly IRepository<ExceptionJournal> _repository;
-
-    public ExceptionJournalService(IRepository<ExceptionJournal> repository)
+    public class ExceptionJournalService : IExceptionJournalService
     {
-        _repository = repository;
-    }
+        private readonly IRepository<ExceptionJournal> _exceptionJournalRepository;
 
-    public async Task<ExceptionJournal> GetByIdAsync(long id)
-    {
-        return await _repository.GetByIdAsync(id);
-    }
-
-    public async Task<IEnumerable<ExceptionJournal>> GetRangeAsync(ExceptionJournalFilter filter)
-    {
-        var query = _repository.GetAllAsync().Result.AsQueryable();
-
-        if (filter.From.HasValue)
+        public ExceptionJournalService(IRepository<ExceptionJournal> exceptionJournalRepository)
         {
-            query = query.Where(e => e.CreatedAt >= filter.From.Value);
+            _exceptionJournalRepository = exceptionJournalRepository;
         }
 
-        if (filter.To.HasValue)
+        public async Task<MRange<MJournalInfo>> GetRangeAsync(VJournalFilter filter)
         {
-            query = query.Where(e => e.CreatedAt <= filter.To.Value);
+            var query = await _exceptionJournalRepository.GetAllAsync();
+
+            if (!string.IsNullOrEmpty(filter.From))
+            {
+                var fromDate = DateTime.Parse(filter.From);
+                query = query.Where(e => e.CreatedAt >= fromDate);
+            }
+
+            if (!string.IsNullOrEmpty(filter.To))
+            {
+                var toDate = DateTime.Parse(filter.To);
+                query = query.Where(e => e.CreatedAt <= toDate);
+            }
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                query = query.Where(e => e.StackTrace.Contains(filter.Search));
+            }
+
+            var count = query.Count();
+            var items = query.Skip(filter.Skip).Take(filter.Count).ToList();
+
+            return new MRange<MJournalInfo>
+            {
+                Skip = filter.Skip,
+                Count = count,
+                Items = items.Select(e => new MJournalInfo
+                {
+                    Id = e.Id,
+                    EventId = e.EventId,
+                    CreatedAt = e.CreatedAt.ToString("o")
+                }).ToList()
+            };
         }
 
-        if (!string.IsNullOrEmpty(filter.Search))
+        public async Task<MJournal> GetSingleAsync(long id)
         {
-            query = query.Where(e => e.StackTrace.Contains(filter.Search));
+            var journal = await _exceptionJournalRepository.GetByIdAsync((int)id);
+            return journal == null
+                ? throw new ArgumentException("Journal entry not found")
+                : new MJournal
+            {
+                Id = journal.Id,
+                EventId = journal.EventId,
+                CreatedAt = journal.CreatedAt.ToString("o"),
+                Text = journal.StackTrace
+            };
         }
 
-        return await Task.FromResult(query.ToList());
-    }
-
-    public async Task LogExceptionAsync(ExceptionJournal journalEntry)
-    {
-        await _repository.AddAsync(journalEntry);
     }
 }

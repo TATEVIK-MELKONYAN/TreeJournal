@@ -1,8 +1,12 @@
-﻿public interface IRepository<T> where T : class
+﻿namespace TreeJournalApi.Repositories.Interfaces
 {
-    Task<T> GetByIdAsync(long id);
-    Task<IEnumerable<T>> GetAllAsync();
-    Task AddAsync(T entity);
-    Task UpdateAsync(T entity);
-    Task DeleteAsync(long id);
+    public interface IRepository<TEntity> where TEntity : class
+    {
+        Task<TEntity> GetByIdAsync(int id);
+        Task<IEnumerable<TEntity>> GetAllAsync();
+        Task AddAsync(TEntity entity);
+        Task UpdateAsync(TEntity entity);
+        Task DeleteAsync(int id);
+        Task SaveChangesAsync();
+    }
 }

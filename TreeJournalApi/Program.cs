@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using TreeJournalApi.Data;
+using TreeJournalApi.Middleware;
 using TreeJournalApi.Models;
+using TreeJournalApi.Repositories;
+using TreeJournalApi.Repositories.Interfaces;
+using TreeJournalApi.Services;
+using TreeJournalApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,13 +14,12 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register repositories
+// Register Repositories
 builder.Services.AddScoped<IRepository<ExceptionJournal>, ExceptionJournalRepository>();
-builder.Services.AddScoped<IRepository<TreeNode>, TreeRepository>();
-
-// Register services
+builder.Services.AddScoped<IRepository<TreeNode>, TreeNodeRepository>();
+// Register Services
+builder.Services.AddScoped<ITreeNodeService, TreeNodeService>();
 builder.Services.AddScoped<IExceptionJournalService, ExceptionJournalService>();
-builder.Services.AddScoped<ITreeService, TreeService>();
 
 // Register Swagger services
 builder.Services.AddEndpointsApiExplorer();

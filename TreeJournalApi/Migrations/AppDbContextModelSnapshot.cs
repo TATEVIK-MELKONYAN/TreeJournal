@@ -55,11 +55,11 @@ namespace TreeJournalApi.Migrations
 
             modelBuilder.Entity("TreeJournalApi.Models.Tree", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -70,24 +70,24 @@ namespace TreeJournalApi.Migrations
                     b.ToTable("Trees");
                 });
 
-            modelBuilder.Entity("TreeNode", b =>
+            modelBuilder.Entity("TreeJournalApi.Models.TreeNode", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("ParentId")
+                    b.Property<int?>("ParentId")
                         .IsRequired()
-                        .HasColumnType("bigint");
+                        .HasColumnType("int");
 
-                    b.Property<long?>("TreeId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TreeId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -98,19 +98,23 @@ namespace TreeJournalApi.Migrations
                     b.ToTable("TreeNodes");
                 });
 
-            modelBuilder.Entity("TreeNode", b =>
+            modelBuilder.Entity("TreeJournalApi.Models.TreeNode", b =>
                 {
-                    b.HasOne("TreeNode", "Parent")
+                    b.HasOne("TreeJournalApi.Models.TreeNode", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TreeJournalApi.Models.Tree", null)
+                    b.HasOne("TreeJournalApi.Models.Tree", "Tree")
                         .WithMany("Nodes")
-                        .HasForeignKey("TreeId");
+                        .HasForeignKey("TreeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Parent");
+
+                    b.Navigation("Tree");
                 });
 
             modelBuilder.Entity("TreeJournalApi.Models.Tree", b =>
@@ -118,7 +122,7 @@ namespace TreeJournalApi.Migrations
                     b.Navigation("Nodes");
                 });
 
-            modelBuilder.Entity("TreeNode", b =>
+            modelBuilder.Entity("TreeJournalApi.Models.TreeNode", b =>
                 {
                     b.Navigation("Children");
                 });

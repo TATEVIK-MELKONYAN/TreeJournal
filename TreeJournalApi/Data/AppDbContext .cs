@@ -19,6 +19,11 @@ namespace TreeJournalApi.Data
                 .HasForeignKey(node => node.ParentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<TreeNode>()
+            .HasOne(n => n.Tree)
+            .WithMany(t => t.Nodes)
+            .HasForeignKey(n => n.TreeId);
+
             base.OnModelCreating(modelBuilder);
         }
 
